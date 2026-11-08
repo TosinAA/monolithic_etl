@@ -1,0 +1,2 @@
+#Hiding the db_cred.env file to prevent leaking credentials to git.
+db_cred.env
