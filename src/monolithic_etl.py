@@ -4,6 +4,11 @@ import requests
 from requests import RequestException
 import datetime as dt
 from sqlalchemy import create_engine, text
+from dotenv import load_dotenv, dotenv_values
+from pathlib import Path
+
+#loading the secrets from the db_cred.env file
+load_dotenv()
 
 def read_json(url):
     """
@@ -74,8 +79,14 @@ def create_db():
     Returns: None
     """
 
-    #Creating the database credential variable
-    db_cred_1 = {'host':'localhost', 'port':3306, 'user':'root', 'password':'tosin'}
+    #loading the database credential variable
+    # a. Get the root directory (go up one level from 'src' to 'metl')
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    # b. Point directly to dotenv.env in the root folder
+    env_path = BASE_DIR / "db_cred.env"
+    config_1 = dotenv_values(env_path)
+    db_cred_1 = {'host':'localhost', 'port':3306, 'user':config_1.get('user'), 'password':config_1.get('password')}
 
     #Opening the database connection and creating the database
     try:
@@ -125,7 +136,13 @@ def load_to_database(df):
     """
 
     #Creating the database credential
-    db_cred_2 = {'host':'localhost', 'port':3306, 'user':'root', 'password':'tosin', 'database':'carbon_db'}
+        # a. Get the root directory (go up one level from 'src' to 'metl')
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    # b. Point directly to dotenv.env in the root folder
+    env_path = BASE_DIR / "db_cred.env"
+    config_2 = dotenv_values(env_path)
+    db_cred_2 = {'host':'localhost', 'port':3306, 'user':config_2.get('user'), 'password':config_2.get('password'), 'database':'carbon_db'}
     
 
     #Opening the database connection and writing the dataframe to database table
@@ -139,6 +156,7 @@ def load_to_database(df):
         print("An error {} was encountered while connecting to or writing to the database table.".format(e))
 
 
+#Executing the data sourcing, data cleaning and transformation and data loading to database functions.
 def main():
     url = 'https://api.carbonintensity.org.uk/intensity/date'
     df = read_json(url)
@@ -146,4 +164,5 @@ def main():
     create_db()
     load_to_database(new_data)
 
+#Calling the main function to execute the codes
 main()
